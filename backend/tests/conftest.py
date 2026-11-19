@@ -9,6 +9,8 @@ from app import db, main
 # the sample pack's expected numbers depend on "today" (the 5–25 age rule), so pin it
 TODAY = date(2026, 11, 19)
 SAMPLES = Path(__file__).resolve().parents[2] / "data-sample"
+# the sample pack isn't committed (it's confidential); drop it into data-sample/ to run these too
+needs_samples = pytest.mark.skipif(not (SAMPLES / "students_sample.csv").exists(), reason="sample pack not in data-sample/")
 HEADER = "student_id,full_name,email,date_of_birth,grade_level,section,maths,science,english,social_studies,second_language"
 
 

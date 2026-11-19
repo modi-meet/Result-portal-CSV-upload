@@ -3,7 +3,7 @@
 import pytest
 
 from app.validation import FileError, check_lines, parse_file
-from conftest import HEADER, SAMPLES, TODAY, csv_bytes, row
+from conftest import HEADER, SAMPLES, TODAY, csv_bytes, needs_samples, row
 
 
 def run(data: bytes):
@@ -12,6 +12,7 @@ def run(data: bytes):
     return parsed, results
 
 
+@needs_samples
 @pytest.mark.parametrize("name,read,imported,rejected,problems", [
     ("students_small.csv", 25, 16, 9, 9),
     ("students_sample.csv", 5000, 4685, 315, 348),

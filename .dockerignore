@@ -8,3 +8,4 @@ backend/static
 .claude
 sample-ui
 *.pdf
+data-sample

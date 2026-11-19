@@ -14,3 +14,6 @@ backend/static/
 # node
 node_modules/
 frontend/dist/
+
+# sample pack is confidential, keep it local
+data-sample/

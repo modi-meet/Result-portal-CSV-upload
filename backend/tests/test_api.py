@@ -1,8 +1,16 @@
 """End to end through HTTP: upload, re-upload, the fix-then-import flow, and the student pages."""
 
-from conftest import SAMPLES, csv_bytes, row, upload
+import importlib.util
+from pathlib import Path
+
+from conftest import SAMPLES, TODAY, csv_bytes, needs_samples, row, upload
+
+_spec = importlib.util.spec_from_file_location("seed", Path(__file__).resolve().parents[2] / "scripts" / "seed.py")
+seed = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(seed)
 
 
+@needs_samples
 def test_import_sample_file(client):
     r = upload(client, (SAMPLES / "students_sample.csv").read_bytes(), "students_sample.csv")
     assert r.status_code == 201
@@ -14,13 +22,27 @@ def test_import_sample_file(client):
     assert client.get("/api/students").json()["total"] == 4685
 
 
+def test_large_messy_file(client):
+    text, rejected, _ = seed.generate(5000, .07, 7, TODAY)
+    rep = upload(client, text.encode(), "seed.csv").json()
+    assert (rep["rows_read"], rep["rejected"], rep["new"]) == (5000, rejected, 5000 - rejected)
+    assert rep["problems_total"] >= rejected and len(rep["problems"]) == 50
+    assert client.get("/api/students").json()["total"] == 5000 - rejected
+
+
 def test_same_file_again_changes_nothing_and_says_so(client):
-    data = (SAMPLES / "students_small.csv").read_bytes()
+    data = csv_bytes(row(sid="S01"), row(sid="S02"), row(sid="S03", email="bad"))
     first = upload(client, data).json()
     again = upload(client, data).json()
-    assert (again["new"], again["updated"], again["unchanged"]) == (0, 0, 16)
+    assert (again["new"], again["updated"], again["unchanged"]) == (0, 0, 2)
     assert again["same_file_as"]["id"] == first["id"]
-    assert client.get("/api/students").json()["total"] == 16
+    assert client.get("/api/students").json()["total"] == 2
+
+
+def test_empty_portal(client):
+    assert client.get("/api/students").json() == {"items": [], "total": 0, "page": 1, "page_size": 25}
+    assert client.get("/api/imports").json() == []
+    assert client.get("/api/imports/1").status_code == 404
 
 
 def test_later_file_updates_existing_students(client):

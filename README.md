@@ -18,7 +18,7 @@ Open http://localhost:8080. The SQLite database lives in the `results-data` volu
 
 ## Load some data
 
-Use the sample pack in `data-sample/` from the Import screen, or generate a fresh messy file:
+A fresh install starts empty, and every screen shows a clear empty state with a way forward. To fill it, generate a messy file:
 
 ```bash
 python3 scripts/seed.py --rows 5000 --upload http://localhost:8080
@@ -37,7 +37,7 @@ cd backend && uv run pytest
 What's covered:
 - every column rule, including its edge cases
 - whole-file problems: encodings, Excel files, missing columns, semicolons, blank lines and line endings
-- the sample pack's expected numbers (25/16/9 and 5,000/4,685/315)
+- the sample pack's expected numbers (25/16/9 and 5,000/4,685/315). The pack is confidential, so it isn't in the repo: put `students_small.csv` and `students_sample.csv` in `data-sample/` and these tests run, otherwise they're skipped
 - the API flows: re-uploads, the fix-then-import flow, and search
 - a property-style check that the importer rejects exactly the rows the seed script broke
 
