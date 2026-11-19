@@ -106,7 +106,7 @@ export function Uploader({ mode, actionLabel, onDone }: {
           <input ref={input} type="file" accept=".csv,text/csv" hidden onChange={(e) => (pick(e.target.files?.[0]), (e.target.value = ''))} />
         </div>
 
-        <div className="card lift file-card">
+        <div className="card file-card">
           {file ? (
             <div>
               <span className="eyebrow">Selected file</span>
