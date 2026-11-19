@@ -1,0 +1,10 @@
+**/node_modules
+**/.venv
+**/__pycache__
+**/dist
+backend/data
+backend/static
+.git
+.claude
+sample-ui
+*.pdf
