@@ -272,3 +272,14 @@ def problems_csv(conn, import_id: int) -> str:
 def history(conn, limit: int = 20) -> list[dict]:
     return [summary(r) for r in conn.execute(
         "SELECT * FROM imports WHERE status = 'committed' ORDER BY id DESC LIMIT ?", (limit,))]
+
+
+def clear_all(conn) -> dict:
+    """Wipe every student and import, so the portal is back to a fresh install."""
+    counts = {
+        "students": conn.execute("SELECT COUNT(*) FROM students").fetchone()[0],
+        "imports": conn.execute("SELECT COUNT(*) FROM imports").fetchone()[0],
+    }
+    for table in ("students", "import_problems", "import_lines", "imports"):  # children before parents
+        conn.execute(f"DELETE FROM {table}")
+    return counts

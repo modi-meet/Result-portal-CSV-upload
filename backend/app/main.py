@@ -127,6 +127,23 @@ def _csv(body: str, filename: str) -> Response:
                     headers={"Content-Disposition": f'attachment; filename="{filename}"'})
 
 
+# set ALLOW_CLEAR_DATA=0 to hide the "clear all data" action (there are no logins)
+ALLOW_CLEAR = os.environ.get("ALLOW_CLEAR_DATA", "1") != "0"
+
+
+@app.get("/api/config")
+def config():
+    return {"allow_clear": ALLOW_CLEAR, "max_upload_mb": MAX_FILE_BYTES / 1024 / 1024}
+
+
+@app.delete("/api/data")
+def clear_data(conn=Depends(get_conn)):
+    if not ALLOW_CLEAR:
+        raise HTTPException(403, {"code": "FORBIDDEN", "message": "Clearing data is turned off on this portal."})
+    with conn:
+        return {"deleted": imports.clear_all(conn)}
+
+
 # ---------- students ----------
 
 @app.get("/api/students")

@@ -1,6 +1,7 @@
-import { createContext, useContext, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import { useReveal } from './lib'
+import { api } from './api'
 
 /** Anything on the page can say "I'm busy" and the header's progress line shows it. */
 const BusyContext = createContext<(busy: boolean) => void>(() => {})
@@ -103,3 +104,64 @@ export const SearchIcon = () => (
 export const Arrow = ({ left }: { left?: boolean }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={left ? { transform: 'rotate(180deg)' } : undefined}><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 )
+
+let configPromise: ReturnType<typeof api.config> | null = null
+const useAllowClear = () => {
+  const [allow, setAllow] = useState(false)
+  useEffect(() => {
+    configPromise ??= api.config().catch(() => ({ allow_clear: false, max_upload_mb: 10 }))
+    configPromise.then((c) => setAllow(c.allow_clear))
+  }, [])
+  return allow
+}
+
+/** Wipes every student and import, behind a typed confirmation. */
+export function ClearDataButton({ onCleared, disabled }: { onCleared: () => void; disabled?: boolean }) {
+  const allow = useAllowClear()
+  const dialog = useRef<HTMLDialogElement>(null)
+  const [typed, setTyped] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  if (!allow) return null
+
+  const open = () => {
+    setTyped('')
+    setError(null)
+    dialog.current?.showModal()
+  }
+  const clear = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      await api.clearData()
+      dialog.current?.close()
+      onCleared()
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <>
+      <button className="btn btn-danger btn-sm" onClick={open} disabled={disabled}>Clear all data</button>
+      <dialog ref={dialog} className="modal" onClose={() => setTyped('')} aria-labelledby="clear-title">
+        <form method="dialog" onSubmit={(e) => (e.preventDefault(), typed === 'delete' && clear())}>
+          <span className="eyebrow" style={{ color: 'rgb(var(--bad))' }}>Can't be undone</span>
+          <h2 id="clear-title">Clear all data?</h2>
+          <p className="muted">Every student, report and import history will be deleted, and the portal will be empty again. Keep your CSV files if you want to import them later.</p>
+          <label htmlFor="clear-confirm" className="field-label">Type <b>delete</b> to confirm</label>
+          <input id="clear-confirm" className="input" style={{ width: '100%' }} value={typed} autoComplete="off" autoFocus
+            onChange={(e) => setTyped(e.target.value.trim().toLowerCase())} />
+          {error && <p className="row-msgs" role="alert" style={{ marginTop: 10 }}>{error}</p>}
+          <div className="modal-actions">
+            <button type="button" className="btn btn-ghost" onClick={() => dialog.current?.close()}>Cancel</button>
+            <button type="submit" className="btn btn-danger-solid" disabled={typed !== 'delete' || busy}>{busy ? 'Clearing…' : 'Clear everything'}</button>
+          </div>
+        </form>
+      </dialog>
+    </>
+  )
+}

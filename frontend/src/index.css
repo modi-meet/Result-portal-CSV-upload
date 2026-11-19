@@ -292,3 +292,15 @@ td.name a:hover { color: rgb(var(--accent-ink)); }
   .card-pad, .overall { padding: 20px; }
 }
 .drop.disabled:hover { transform: none; box-shadow: none; }
+
+/* confirm dialog */
+.modal { width: min(460px, calc(100vw - 32px)); padding: 28px; border: 1px solid rgb(var(--fg) / .1); border-radius: var(--radius); background: rgb(var(--surface)); color: rgb(var(--fg)); box-shadow: 0 30px 80px -30px rgb(var(--fg) / .45); }
+.modal[open] { animation: modal-in .35s var(--ease-out); }
+.modal::backdrop { background: rgb(var(--fg) / .28); backdrop-filter: blur(4px); }
+.modal h2 { margin-bottom: 10px; }
+.modal p { margin-bottom: 18px; }
+.field-label { display: block; font-size: 13px; margin-bottom: 8px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+.btn-danger-solid { background: rgb(var(--bad)); color: #fff; }
+.btn-danger-solid:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 26px -8px rgb(var(--bad) / .5); }
+@keyframes modal-in { from { opacity: 0; transform: translateY(12px) scale(.98); } }

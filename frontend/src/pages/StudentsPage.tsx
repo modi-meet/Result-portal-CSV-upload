@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { api, ApiError, type StudentPage } from '../api'
-import { Notice, Reveal, SearchIcon, useBusy } from '../components'
+import { ClearDataButton, Notice, Reveal, SearchIcon, useBusy } from '../components'
 import { fmt, useDebounced } from '../lib'
 
 const SIZES = [25, 50, 100]
@@ -25,6 +25,7 @@ export default function StudentsPage() {
   const [error, setError] = useState<ApiError | null>(null)
   const [loading, setLoading] = useState(true)
   const [attempt, setAttempt] = useState(0)
+  const [cleared, setCleared] = useState(false)
   useBusy(loading)
 
   const update = (patch: Record<string, string | number | null>, resetPage = true) => {
@@ -85,7 +86,14 @@ export default function StudentsPage() {
           <h1>Students</h1>
           <p className="muted">Search by name or student ID, filter by class, and open any student to see their report.</p>
         </div>
+        <ClearDataButton disabled={!data?.total && !filtered} onCleared={() => {
+          setText('')
+          setParams(new URLSearchParams())
+          setAttempt((a) => a + 1)
+          setCleared(true)
+        }} />
       </Reveal>
+      {cleared && <div style={{ marginBottom: 16 }}><Notice title="All data cleared">The portal is empty again. Import a file whenever you're ready.</Notice></div>}
 
       <Reveal delay={80}>
         <div className="toolbar">

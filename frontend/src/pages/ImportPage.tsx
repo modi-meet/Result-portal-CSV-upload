@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api, ApiError, type ImportReport, type ImportSummary } from '../api'
-import { Notice, Reveal, Stat, useBusy } from '../components'
+import { ClearDataButton, Notice, Reveal, Stat, useBusy } from '../components'
 import { fmt, fmtBytes, fmtDate, LABELS, plural, REQUIRED_COLUMNS } from '../lib'
 import FixImport from './FixImport'
 
@@ -304,7 +304,10 @@ function History() {
   const v = params.get('version') === '2' ? 'version=2&' : ''
   return (
     <section className="section">
-      <Reveal className="section-head"><div><span className="eyebrow">Earlier imports</span><h2>Recent files</h2></div></Reveal>
+      <Reveal className="section-head">
+        <div><span className="eyebrow">Earlier imports</span><h2>Recent files</h2></div>
+        <ClearDataButton onCleared={() => setItems([])} />
+      </Reveal>
       <div className="history">
         {items.map((it, i) => (
           <Reveal key={it.id} delay={Math.min(i, 6) * 50}>

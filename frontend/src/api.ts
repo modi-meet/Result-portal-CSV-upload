@@ -108,6 +108,8 @@ export const api = {
   commit: (id: number) => request<ImportReport>(`/api/imports/${id}/commit`, { method: 'POST' }),
   students: (params: URLSearchParams, signal?: AbortSignal) => request<StudentPage>(`/api/students?${params}`, { signal }),
   student: (id: string, signal?: AbortSignal) => request<Student>(`/api/students/${encodeURIComponent(id)}`, { signal }),
+  config: () => request<{ allow_clear: boolean; max_upload_mb: number }>('/api/config'),
+  clearData: () => request<{ deleted: { students: number; imports: number } }>('/api/data', { method: 'DELETE' }),
   problemsCsvUrl: (id: number) => `/api/imports/${id}/problems.csv`,
   fixedCsvUrl: (id: number) => `/api/imports/${id}/file.csv`,
 

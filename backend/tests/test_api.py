@@ -3,6 +3,7 @@
 import importlib.util
 from pathlib import Path
 
+from app import main
 from conftest import SAMPLES, TODAY, csv_bytes, needs_samples, row, upload
 
 _spec = importlib.util.spec_from_file_location("seed", Path(__file__).resolve().parents[2] / "scripts" / "seed.py")
@@ -122,3 +123,18 @@ def test_student_report_and_not_found(client):
     assert [m["passed"] for m in st["marks"]] == [True, True, True, True, False]
     r = client.get("/api/students/NOPE")
     assert r.status_code == 404 and "NOPE" in r.json()["detail"]["message"]
+
+
+def test_clear_all_data(client, monkeypatch):
+    upload(client, csv_bytes(row(sid="S01"), row(sid="S02", email="bad")))
+    upload(client, csv_bytes(row(sid="S03")), mode="check")  # a staged check goes too
+    r = client.delete("/api/data").json()
+    assert r["deleted"] == {"students": 1, "imports": 2}
+    assert client.get("/api/students").json()["total"] == 0
+    assert client.get("/api/imports").json() == []
+    # importing again after a clear works like a fresh install
+    assert upload(client, csv_bytes(row(sid="S01"))).json()["new"] == 1
+
+    monkeypatch.setattr(main, "ALLOW_CLEAR", False)
+    assert client.delete("/api/data").status_code == 403
+    assert client.get("/api/config").json()["allow_clear"] is False

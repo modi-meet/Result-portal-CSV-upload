@@ -37,6 +37,9 @@ Both screens share the same rules and code paths. The only difference is when th
 ## Things I noticed in the data
 Beyond the obvious traps, some emails don't match the student's name (e.g. "Müller Patel" with `dev.singh10@…`). They aren't against the rules, so they import. Flagging them as warnings would be a nice follow-up.
 
+## Clear all data
+There's a "Clear all data" button so a demo can be reset. A wipe can't be undone, so you have to type "delete" to confirm. There are no logins, so anyone with the link could use it; set `ALLOW_CLEAR_DATA=0` and the button and endpoint disappear.
+
 ## Not built
 - logins
 - deleting or editing students after import

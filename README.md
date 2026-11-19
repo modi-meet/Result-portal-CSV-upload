@@ -5,6 +5,7 @@ Upload a CSV of term results, see exactly what was accepted and why the rest was
 - **Import** (`/import`): upload a file. Good rows go in, and every problem is listed by row number in plain words. You can download the list as a CSV.
 - **Import, check and fix** (`/import?version=2`): the file is only checked at first. You fix or remove problem rows right there, download the corrected file, then import once.
 - **Students** (`/students`): search by name or ID (case and accents don't matter), filter by class, sort, and page through.
+- **Clear all data**: a button on Students and Import, behind a "type delete" confirmation, puts the portal back to empty.
 - **Student report** (`/students/:id`): details, marks, total, percentage, grade and pass/fail. You can print it.
 
 ## Run it with Docker
@@ -94,6 +95,7 @@ scripts/seed.py             messy data generator + uploader
 | PATCH | `/api/imports/{id}/lines/{row}` | Fix a row: `{values}`, `{raw}` or `{removed}` |
 | GET | `/api/imports/{id}/file.csv` | The corrected file |
 | POST | `/api/imports/{id}/commit` | Import a staged file |
+| DELETE | `/api/data` | Clear every student and import (turn off with `ALLOW_CLEAR_DATA=0`) |
 | GET | `/api/students?q=&grade_level=&section=&sort=&order=&page=&page_size=` | Search |
 | GET | `/api/students/{id}` | One student's report |
 
