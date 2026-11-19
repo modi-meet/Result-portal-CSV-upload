@@ -36,9 +36,9 @@ export function Shell({ children }: { children: ReactNode }) {
     <BusyContext.Provider value={setBusy}>
       <header className={`header ${stuck ? 'is-stuck' : ''}`}>
         <div className="container">
-          <Link to="/import" className="brand">
-            <span className="brand-mark" aria-hidden>R</span>
-            Results Portal
+          <Link to="/import" className="brand" aria-label="Results Portal home">
+            <img src="/logo.svg" alt="" width="118" height="15" />
+            <span className="brand-sub">Portal</span>
           </Link>
           <nav className="nav" aria-label="Main">
             <NavLink to="/import">Import</NavLink>

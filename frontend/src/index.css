@@ -70,7 +70,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .header .container { height: 100%; display: flex; align-items: center; gap: 28px; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 600 16px var(--font-display); letter-spacing: -.02em; }
-.brand-mark { width: 26px; height: 26px; border-radius: 8px; background: rgb(var(--fg)); display: grid; place-items: center; color: rgb(var(--bg)); font-size: 13px; }
+.brand img { display: block; height: 15px; width: auto; transition: transform .35s var(--ease); }
+.brand:hover img { transform: translateY(-1px); }
+.brand-sub { padding-left: 10px; border-left: 1px solid rgb(var(--fg) / .15); font: 500 11px var(--font-body); text-transform: uppercase; letter-spacing: .16em; color: rgb(var(--muted) / .62); }
 .nav { display: flex; gap: 22px; margin-left: auto; align-items: center; }
 .nav a { position: relative; text-decoration: none; font-weight: 500; font-size: 13px; color: rgb(var(--muted) / .72); padding: 6px 0; transition: color .2s var(--ease); }
 .nav a::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1.5px; background: rgb(var(--accent)); transform: scaleX(0); transform-origin: left; transition: transform .3s var(--ease); }
