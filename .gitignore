@@ -1,0 +1,16 @@
+.claude
+sample-ui/
+*.pdf
+.DS_Store
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+backend/data/
+backend/static/
+
+# node
+node_modules/
+frontend/dist/
