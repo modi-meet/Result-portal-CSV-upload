@@ -25,21 +25,6 @@
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --bg: 0 3 6; --surface: 2 10 13; --inset: 5 22 27; --zebra: 4 16 15;
-    --fg: 255 255 255; --muted: 200 214 214; --accent: 58 220 197; --accent-ink: 58 220 197;
-    --good: 74 214 150; --bad: 255 118 108; --warn: 240 184 80; --on-accent: 0 20 18;
-    color-scheme: dark;
-  }
-}
-:root[data-theme='dark'] {
-  --bg: 0 3 6; --surface: 2 10 13; --inset: 5 22 27; --zebra: 4 16 15;
-  --fg: 255 255 255; --muted: 200 214 214; --accent: 58 220 197; --accent-ink: 58 220 197;
-  --good: 74 214 150; --bad: 255 118 108; --warn: 240 184 80; --on-accent: 0 20 18;
-  color-scheme: dark;
-}
-
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 body {
@@ -95,8 +80,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .progress-line.busy { width: 40%; animation: indeterminate 1.1s var(--ease) infinite; }
 @keyframes indeterminate { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
 
-.icon-btn { width: 34px; height: 34px; border-radius: 999px; border: 1px solid rgb(var(--fg) / .1); background: transparent; display: grid; place-items: center; cursor: pointer; transition: background .2s var(--ease), border-color .2s var(--ease); }
-.icon-btn:hover { background: rgb(var(--accent) / .1); border-color: rgb(var(--accent) / .4); }
 
 main { padding: 40px 0 120px; }
 .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 32px; }
@@ -292,3 +275,6 @@ td.name a:hover { color: rgb(var(--accent-ink)); }
   .card { box-shadow: none; background: #fff; }
   .rv { opacity: 1 !important; transform: none !important; filter: none !important; }
 }
+
+.icon-btn { width: 30px; height: 30px; border-radius: 999px; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer; font-size: 18px; color: rgb(var(--muted) / .6); transition: background .2s var(--ease), color .2s var(--ease); }
+.icon-btn:hover { background: rgb(var(--accent) / .1); color: rgb(var(--fg)); }
