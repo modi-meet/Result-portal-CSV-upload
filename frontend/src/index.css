@@ -278,3 +278,14 @@ td.name a:hover { color: rgb(var(--accent-ink)); }
 
 .icon-btn { width: 30px; height: 30px; border-radius: 999px; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer; font-size: 18px; color: rgb(var(--muted) / .6); transition: background .2s var(--ease), color .2s var(--ease); }
 .icon-btn:hover { background: rgb(var(--accent) / .1); color: rgb(var(--fg)); }
+
+/* small screens */
+.report-top > *, .profile > div { min-width: 0; }
+.profile dd, .file-name { overflow-wrap: anywhere; }
+.big-pct { font-variant-numeric: normal; }
+@media (max-width: 560px) {
+  .profile { flex-direction: column; align-items: flex-start; padding: 22px; }
+  .avatar { width: 56px; height: 56px; font-size: 18px; }
+  .marks th:last-child, .marks td:last-child { display: none; }
+  .card-pad, .overall { padding: 20px; }
+}
