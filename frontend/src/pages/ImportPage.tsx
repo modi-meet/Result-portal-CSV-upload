@@ -88,7 +88,7 @@ export function Uploader({ mode, actionLabel, onDone }: {
     <Reveal delay={80}>
       <div className="upload-grid">
         <div
-          className={`drop ${over ? 'over' : ''} ${busy ? 'disabled' : ''}`}
+          className={`card lift drop ${over ? 'over' : ''} ${busy ? 'disabled' : ''}`}
           role="button"
           tabIndex={0}
           aria-label="Choose a CSV file, or drop one here"
@@ -106,7 +106,7 @@ export function Uploader({ mode, actionLabel, onDone }: {
           <input ref={input} type="file" accept=".csv,text/csv" hidden onChange={(e) => (pick(e.target.files?.[0]), (e.target.value = ''))} />
         </div>
 
-        <div className="card file-card">
+        <div className="card lift file-card">
           {file ? (
             <div>
               <span className="eyebrow">Selected file</span>

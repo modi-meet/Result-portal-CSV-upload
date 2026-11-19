@@ -289,3 +289,4 @@ td.name a:hover { color: rgb(var(--accent-ink)); }
   .marks th:last-child, .marks td:last-child { display: none; }
   .card-pad, .overall { padding: 20px; }
 }
+.drop.disabled:hover { transform: none; box-shadow: none; }
