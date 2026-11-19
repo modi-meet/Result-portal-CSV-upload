@@ -1,0 +1,4 @@
+# used by Vercel for api/index.py (local dev and Docker use backend/pyproject.toml)
+fastapi>=0.115
+python-multipart>=0.0.9
+psycopg[binary]>=3.2

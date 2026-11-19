@@ -1,3 +1,4 @@
+import os
 from datetime import date
 from pathlib import Path
 
@@ -26,6 +27,13 @@ def csv_bytes(*rows: str, header: str = HEADER) -> bytes:
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     monkeypatch.setattr(db, "DB_PATH", str(tmp_path / "test.db"))
+    monkeypatch.setattr(db, "DATABASE_URL", os.environ.get("TEST_DATABASE_URL"))
+    monkeypatch.setattr(main, "_ready", False)
+    if db.DATABASE_URL:  # same suite against postgres: start from empty tables
+        conn = db.connect()
+        with conn:
+            conn.execute("DROP TABLE IF EXISTS students, import_problems, import_lines, imports")
+        conn.close()
     main.app.dependency_overrides[main.get_today] = lambda: TODAY
     with TestClient(main.app) as c:
         yield c

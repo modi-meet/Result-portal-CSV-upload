@@ -7,7 +7,6 @@ import csv
 import hashlib
 import io
 import json
-import sqlite3
 import unicodedata
 from datetime import date, datetime, timedelta, timezone
 
@@ -40,16 +39,17 @@ def fold(text: str) -> str:
 
 # ---------- staging ----------
 
-def stage(conn: sqlite3.Connection, filename: str, data: bytes, today: date) -> int:
+def stage(conn, filename: str, data: bytes, today: date) -> int:
     """Parse and store an upload as 'staged'. Raises FileError for files we can't read at all."""
     parsed = parse_file(data)
     cutoff = (datetime.now(timezone.utc) - STAGE_TTL).isoformat(timespec="seconds").replace("+00:00", "Z")
     conn.execute("DELETE FROM imports WHERE status = 'staged' AND created_at < ?", (cutoff,))
 
-    cur = conn.execute(
-        "INSERT INTO imports (filename, file_hash, header, header_raw, status, created_at) VALUES (?,?,?,?,?,?)",
-        (filename, hashlib.sha256(data).hexdigest(), json.dumps(parsed.header), parsed.header_raw, "staged", _now()))
-    import_id = cur.lastrowid
+    import_id = conn.execute(
+        "INSERT INTO imports (filename, file_hash, header, header_raw, status, created_at) VALUES (?,?,?,?,?,?) "
+        "RETURNING id",
+        (filename, hashlib.sha256(data).hexdigest(), json.dumps(parsed.header), parsed.header_raw, "staged", _now()),
+    ).fetchone()[0]
     conn.executemany(
         "INSERT INTO import_lines (import_id, line_no, raw, cells) VALUES (?,?,?,?)",
         [(import_id, l.line_no, l.raw, json.dumps(l.cells)) for l in parsed.lines])
@@ -57,7 +57,7 @@ def stage(conn: sqlite3.Connection, filename: str, data: bytes, today: date) -> 
     return import_id
 
 
-def _load(conn, import_id: int) -> tuple[sqlite3.Row, ParsedFile, list[sqlite3.Row]]:
+def _load(conn, import_id: int) -> tuple:
     imp = conn.execute("SELECT * FROM imports WHERE id = ?", (import_id,)).fetchone()
     if not imp:
         raise NotFound()
@@ -132,24 +132,29 @@ def commit(conn, import_id: int, today: date) -> None:
         existing.update({r["student_id"]: r for r in conn.execute(q, chunk)})
 
     now = _now()
-    counts = {"new": 0, "updated": 0, "unchanged": 0}
+    inserts, updates, unchanged = [], [], 0
     for c in valid:
         summary = grading.summarize(c)
         record = {**c, **summary, "passed": int(summary["passed"]), "import_id": import_id, "updated_at": now,
                   "search_key": fold(f"{c['full_name']} {c['student_id']}")}
         old = existing.get(c["student_id"])
         if old is None:
-            counts["new"] += 1
-            record["created_at"] = now
-            conn.execute(f"INSERT INTO students ({', '.join(record)}) VALUES ({', '.join('?' * len(record))})",
-                         list(record.values()))
+            inserts.append({**record, "created_at": now})
         elif all(old[f] == c[f] for f in STUDENT_FIELDS):
-            counts["unchanged"] += 1
+            unchanged += 1
         else:
-            counts["updated"] += 1
-            sid = record.pop("student_id")
-            conn.execute(f"UPDATE students SET {', '.join(f'{k} = ?' for k in record)} WHERE student_id = ?",
-                         [*record.values(), sid])
+            updates.append(record)
+
+    # batched, so a hosted database isn't hit with one round trip per row
+    if inserts:
+        cols = list(inserts[0])
+        conn.executemany(f"INSERT INTO students ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
+                         [[r[k] for k in cols] for r in inserts])
+    if updates:
+        cols = [k for k in updates[0] if k != "student_id"]
+        conn.executemany(f"UPDATE students SET {', '.join(f'{k} = ?' for k in cols)} WHERE student_id = ?",
+                         [[*[r[k] for k in cols], r["student_id"]] for r in updates])
+    counts = {"new": len(inserts), "updated": len(updates), "unchanged": unchanged}
 
     conn.execute("UPDATE imports SET status = 'committed', committed_at = ?, new_count = ?, updated_count = ?, "
                  "unchanged_count = ? WHERE id = ?",
@@ -180,7 +185,7 @@ def report(conn, import_id: int, limit: int = 50, offset: int = 0) -> dict:
     total_problems = conn.execute("SELECT COUNT(*) FROM import_problems WHERE import_id = ?", (import_id,)).fetchone()[0]
     problems = conn.execute(
         "SELECT line_no, student_id, field, code, message FROM import_problems WHERE import_id = ? "
-        "ORDER BY line_no, rowid LIMIT ? OFFSET ?", (import_id, limit, offset)).fetchall()
+        "ORDER BY line_no, id LIMIT ? OFFSET ?", (import_id, limit, offset)).fetchall()
 
     return {
         **summary(imp),
@@ -192,7 +197,7 @@ def report(conn, import_id: int, limit: int = 50, offset: int = 0) -> dict:
     }
 
 
-def summary(imp: sqlite3.Row) -> dict:
+def summary(imp) -> dict:
     return {
         "id": imp["id"],
         "filename": imp["filename"],
@@ -214,7 +219,7 @@ def attention_lines(conn, import_id: int) -> dict:
     imp, parsed, rows = _load(conn, import_id)
     problems: dict[int, list] = {}
     for p in conn.execute("SELECT line_no, field, code, message FROM import_problems WHERE import_id = ? "
-                          "ORDER BY line_no, rowid", (import_id,)):
+                          "ORDER BY line_no, id", (import_id,)):
         problems.setdefault(p["line_no"], []).append({"field": p["field"], "code": p["code"], "message": p["message"]})
 
     header = parsed.header
@@ -259,7 +264,7 @@ def problems_csv(conn, import_id: int) -> str:
     buf.write("﻿")
     writer.writerow(["row", "student_id", "column", "code", "problem"])
     for p in conn.execute("SELECT line_no, student_id, field, code, message FROM import_problems WHERE import_id = ? "
-                          "ORDER BY line_no, rowid", (import_id,)):
+                          "ORDER BY line_no, id", (import_id,)):
         writer.writerow([p["line_no"], p["student_id"], p["field"], p["code"], p["message"]])
     return buf.getvalue()
 

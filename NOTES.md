@@ -3,6 +3,8 @@
 ## Stack
 **FastAPI + SQLite + React (Vite).** One container, one process, and no database server to set up. Python's `csv` module and `unicodedata` handle most of the messy parts. SQLite imports 5,000 rows in one transaction in well under a second. React is plain, with no UI kit or state library, because three screens don't need one.
 
+**Hosting:** SQLite for local runs and Docker. The Vercel deploy uses Neon Postgres through `DATABASE_URL`, because serverless functions can't keep a file. The same SQL runs on both, behind a thin adapter in `db.py`, and the test suite passes on both. Writes are batched, so 5,000 rows take about 2 seconds over the network.
+
 ## How an import works
 Every upload is first **staged**: the lines are stored and checked, and problems are saved per row. Then it's **committed**: valid rows are upserted into `students` in a single transaction.
 - `/import` stages and commits in one request.

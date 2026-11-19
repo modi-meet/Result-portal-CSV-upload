@@ -5,7 +5,8 @@ import { Notice, Reveal, Stat, useBusy } from '../components'
 import { fmt, fmtBytes, fmtDate, LABELS, plural, REQUIRED_COLUMNS } from '../lib'
 import FixImport from './FixImport'
 
-const MAX_BYTES = 10 * 1024 * 1024
+const MAX_MB = Number(import.meta.env.VITE_MAX_UPLOAD_MB) || 10
+const MAX_BYTES = MAX_MB * 1024 * 1024
 
 export default function ImportPage() {
   const [params, setParams] = useSearchParams()
@@ -65,7 +66,7 @@ export function Uploader({ mode, actionLabel, onDone }: {
     if (!f || busy) return
     setError(null)
     setFile(f)
-    if (f.size > MAX_BYTES) setError(new ApiError(0, 'TOO_LARGE', `This file is ${fmtBytes(f.size)}. The limit is 10 MB, so split it into smaller files.`))
+    if (f.size > MAX_BYTES) setError(new ApiError(0, 'TOO_LARGE', `This file is ${fmtBytes(f.size)}. The limit is ${MAX_MB} MB, so split it into smaller files.`))
     else if (f.size === 0) setError(new ApiError(0, 'EMPTY_FILE', 'This file is empty.'))
   }
 

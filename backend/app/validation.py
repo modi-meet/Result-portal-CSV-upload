@@ -1,12 +1,14 @@
 """CSV parsing and row rules. Pure functions, no database, so it's easy to test."""
 
 import csv
+import os
 import re
 import unicodedata
 from dataclasses import dataclass, field
 from datetime import date
 
-MAX_FILE_BYTES = 10 * 1024 * 1024
+# Vercel caps request bodies at 4.5 MB, so the deployed app sets MAX_UPLOAD_MB=4
+MAX_FILE_BYTES = int(float(os.environ.get("MAX_UPLOAD_MB", "10")) * 1024 * 1024)
 
 SUBJECTS = ["maths", "science", "english", "social_studies", "second_language"]
 REQUIRED = ["student_id", "full_name", "email", "date_of_birth", "grade_level", "section", *SUBJECTS]

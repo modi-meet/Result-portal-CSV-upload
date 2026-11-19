@@ -17,3 +17,5 @@ frontend/dist/
 
 # sample pack is confidential, keep it local
 data-sample/
+.vercel
+.env*

@@ -1,5 +1,3 @@
-import sqlite3
-
 from .grading import PASS_OVERALL, PASS_PER_SUBJECT
 from .imports import fold
 from .validation import SUBJECTS
@@ -11,7 +9,7 @@ def _escape_like(text: str) -> str:
     return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
-def search(conn: sqlite3.Connection, *, q: str, grade_level: int | None, section: str | None, sort: str,
+def search(conn, *, q: str, grade_level: int | None, section: str | None, sort: str,
            order: str, page: int, page_size: int) -> dict:
     where, args = [], []
     q = " ".join(q.split())
@@ -40,7 +38,7 @@ def search(conn: sqlite3.Connection, *, q: str, grade_level: int | None, section
     }
 
 
-def get(conn: sqlite3.Connection, student_id: str) -> dict | None:
+def get(conn, student_id: str) -> dict | None:
     row = conn.execute(
         "SELECT s.*, i.filename AS source_file, i.committed_at AS source_imported_at "
         "FROM students s JOIN imports i ON i.id = s.import_id WHERE s.student_id = ?",

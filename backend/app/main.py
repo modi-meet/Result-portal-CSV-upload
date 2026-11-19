@@ -1,6 +1,4 @@
 import os
-from contextlib import asynccontextmanager
-import sqlite3
 from datetime import date
 from pathlib import Path
 from typing import Literal
@@ -16,8 +14,16 @@ from .validation import MAX_FILE_BYTES, FileError
 STATIC_DIR = Path(os.environ.get("STATIC_DIR", Path(__file__).resolve().parent.parent / "static"))
 
 
+_ready = False
+
+
 def get_conn():
+    # create tables on first use; serverless hosts don't always run startup hooks
+    global _ready
     conn = db.connect()
+    if not _ready:
+        db.init(conn)
+        _ready = True
     try:
         yield conn
     finally:
@@ -28,15 +34,7 @@ def get_today() -> date:
     return date.today()
 
 
-@asynccontextmanager
-async def lifespan(_):
-    conn = db.connect()
-    db.init(conn)
-    conn.close()
-    yield
-
-
-app = FastAPI(title="Results Portal", lifespan=lifespan)
+app = FastAPI(title="Results Portal")
 
 
 @app.exception_handler(FileError)
@@ -63,7 +61,7 @@ def health():
 
 @app.post("/api/imports", status_code=201)
 def upload(file: UploadFile = File(...), mode: Literal["import", "check"] = "import",
-           conn: sqlite3.Connection = Depends(get_conn), today: date = Depends(get_today)):
+           conn=Depends(get_conn), today: date = Depends(get_today)):
     """mode=import stages and commits in one go (v1). mode=check only stages, so lines can be fixed first (v2)."""
     data = file.file.read(MAX_FILE_BYTES + 1)
     name = file.filename or "upload.csv"

@@ -16,6 +16,23 @@ docker run --rm -p 8080:8080 -v results-data:/data results-portal
 
 Open http://localhost:8080. The SQLite database lives in the `results-data` volume, so it survives restarts. Drop `-v …` for a throwaway run.
 
+## Deploy on Vercel
+
+Live at https://results-portal-two.vercel.app.
+
+- The React build is served as static files, and `api/index.py` runs the FastAPI app as a function.
+- Data lives in Neon Postgres. The app uses Postgres whenever `DATABASE_URL` is set and falls back to SQLite otherwise.
+
+```bash
+vercel link
+vercel integration add neon --meta region=sin1
+vercel env add MAX_UPLOAD_MB production
+vercel env add VITE_MAX_UPLOAD_MB production
+vercel deploy --prod
+```
+
+Set both upload limits to `4`, because Vercel caps request bodies at 4.5 MB. The Neon step creates the database and sets `DATABASE_URL`, and tables are created on the first request.
+
 ## Load some data
 
 A fresh install starts empty, and every screen shows a clear empty state with a way forward. To fill it, generate a messy file:
@@ -32,7 +49,7 @@ It prints how many rows it deliberately broke, then checks that the portal rejec
 cd backend && uv run pytest
 ```
 
-[uv](https://docs.astral.sh/uv/) installs everything on the first run. Without uv: `pip install fastapi uvicorn python-multipart pytest httpx`, then run `pytest` inside `backend/`.
+[uv](https://docs.astral.sh/uv/) installs everything on the first run. To run the same suite against Postgres, set `TEST_DATABASE_URL=postgresql://…`. Without uv: `pip install fastapi uvicorn python-multipart pytest httpx`, then run `pytest` inside `backend/`.
 
 What's covered:
 - every column rule, including its edge cases
