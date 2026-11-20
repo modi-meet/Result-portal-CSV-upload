@@ -19,3 +19,6 @@ frontend/dist/
 data-sample/
 .vercel
 .env*
+
+# generated test csvs, kept local
+test-files/

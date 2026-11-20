@@ -1,5 +1,7 @@
 # Results Portal
 
+**Live:** https://results-portal-two.vercel.app
+
 Upload a CSV of term results, see exactly what was accepted and why the rest wasn't, then search any student and open their report.
 
 - **Import** (`/import`): upload a file. Good rows go in, and every problem is listed by row number in plain words. You can download the list as a CSV.
@@ -7,6 +9,24 @@ Upload a CSV of term results, see exactly what was accepted and why the rest was
 - **Students** (`/students`): search by name or ID (case and accents don't matter), filter by class, sort, and page through.
 - **Clear all data**: a button on Students and Import, behind a "type delete" confirmation, puts the portal back to empty.
 - **Student report** (`/students/:id`): details, marks, total, percentage, grade and pass/fail. You can print it.
+
+## API
+
+| Method | Path | What it does |
+|---|---|---|
+| POST | `/api/imports?mode=import\|check` | Upload a CSV (multipart `file`). `import` saves valid rows now; `check` only stages it |
+| GET | `/api/imports` | Recent imports |
+| GET | `/api/imports/{id}?offset=&limit=` | Report: counts, grouped reasons, problems (paged) |
+| GET | `/api/imports/{id}/problems.csv` | Problem list as CSV |
+| GET | `/api/imports/{id}/lines` | Rows that need attention (v2) |
+| PATCH | `/api/imports/{id}/lines/{row}` | Fix a row: `{values}`, `{raw}` or `{removed}` |
+| GET | `/api/imports/{id}/file.csv` | The corrected file |
+| POST | `/api/imports/{id}/commit` | Import a staged file |
+| DELETE | `/api/data` | Clear every student and import (turn off with `ALLOW_CLEAR_DATA=0`) |
+| GET | `/api/students?q=&grade_level=&section=&sort=&order=&page=&page_size=` | Search |
+| GET | `/api/students/{id}` | One student's report |
+
+File-level problems come back as `422` with `{detail: {code, message}}`, and the message is written for a school admin.
 
 ## Run it with Docker
 
@@ -16,23 +36,6 @@ docker run --rm -p 8080:8080 -v results-data:/data results-portal
 ```
 
 Open http://localhost:8080. The SQLite database lives in the `results-data` volume, so it survives restarts. Drop `-v …` for a throwaway run.
-
-## Deploy on Vercel
-
-Live at https://results-portal-two.vercel.app.
-
-- The React build is served as static files, and `api/index.py` runs the FastAPI app as a function.
-- Data lives in Neon Postgres. The app uses Postgres whenever `DATABASE_URL` is set and falls back to SQLite otherwise.
-
-```bash
-vercel link
-vercel integration add neon --meta region=sin1
-vercel env add MAX_UPLOAD_MB production
-vercel env add VITE_MAX_UPLOAD_MB production
-vercel deploy --prod
-```
-
-Set both upload limits to `4`, because Vercel caps request bodies at 4.5 MB. The Neon step creates the database and sets `DATABASE_URL`, and tables are created on the first request.
 
 ## Load some data
 
@@ -83,20 +86,20 @@ frontend/src/pages/         Import, FixImport (v2), Students, StudentReport
 scripts/seed.py             messy data generator + uploader
 ```
 
-## API
+<details>
+<summary><b>Deployment notes (Vercel + Neon)</b></summary>
 
-| Method | Path | What it does |
-|---|---|---|
-| POST | `/api/imports?mode=import\|check` | Upload a CSV (multipart `file`). `import` saves valid rows now; `check` only stages it |
-| GET | `/api/imports` | Recent imports |
-| GET | `/api/imports/{id}?offset=&limit=` | Report: counts, grouped reasons, problems (paged) |
-| GET | `/api/imports/{id}/problems.csv` | Problem list as CSV |
-| GET | `/api/imports/{id}/lines` | Rows that need attention (v2) |
-| PATCH | `/api/imports/{id}/lines/{row}` | Fix a row: `{values}`, `{raw}` or `{removed}` |
-| GET | `/api/imports/{id}/file.csv` | The corrected file |
-| POST | `/api/imports/{id}/commit` | Import a staged file |
-| DELETE | `/api/data` | Clear every student and import (turn off with `ALLOW_CLEAR_DATA=0`) |
-| GET | `/api/students?q=&grade_level=&section=&sort=&order=&page=&page_size=` | Search |
-| GET | `/api/students/{id}` | One student's report |
+- The React build is served as static files, and `api/index.py` runs the FastAPI app as a function.
+- Data lives in Neon Postgres. The app uses Postgres whenever `DATABASE_URL` is set and falls back to SQLite otherwise.
 
-File-level problems come back as `422` with `{detail: {code, message}}`, and the message is written for a school admin.
+```bash
+vercel link
+vercel integration add neon --meta region=sin1
+vercel env add MAX_UPLOAD_MB production
+vercel env add VITE_MAX_UPLOAD_MB production
+vercel deploy --prod
+```
+
+Set both upload limits to `4`, because Vercel caps request bodies at 4.5 MB. The Neon step creates the database and sets `DATABASE_URL`, and tables are created on the first request.
+
+</details>
