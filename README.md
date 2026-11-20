@@ -28,15 +28,6 @@ Upload a CSV of term results, see exactly what was accepted and why the rest was
 
 File-level problems come back as `422` with `{detail: {code, message}}`, and the message is written for a school admin.
 
-## Run it with Docker
-
-```bash
-docker build -t results-portal .
-docker run --rm -p 8080:8080 -v results-data:/data results-portal
-```
-
-Open http://localhost:8080. The SQLite database lives in the `results-data` volume, so it survives restarts. Drop `-v …` for a throwaway run.
-
 ## Load some data
 
 A fresh install starts empty, and every screen shows a clear empty state with a way forward. To fill it, generate a messy file:
@@ -73,6 +64,18 @@ backend/app/main.py         FastAPI routes, also serves the built frontend
 frontend/src/pages/         Import, FixImport (v2), Students, StudentReport
 scripts/seed.py             messy data generator + uploader
 ```
+
+<details>
+<summary><b>Run it with Docker</b></summary>
+
+```bash
+docker build -t results-portal .
+docker run --rm -p 8080:8080 -v results-data:/data results-portal
+```
+
+Open http://localhost:8080. The SQLite database lives in the `results-data` volume, so it survives restarts. Drop `-v …` for a throwaway run.
+
+</details>
 
 <details>
 <summary><b>Run locally without Docker</b></summary>
