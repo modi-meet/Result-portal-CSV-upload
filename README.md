@@ -62,18 +62,6 @@ What's covered:
 - the API flows: re-uploads, the fix-then-import flow, and search
 - a property-style check that the importer rejects exactly the rows the seed script broke
 
-## Develop locally
-
-```bash
-cd backend && uv run uvicorn app.main:app --reload --port 8000
-```
-
-```bash
-cd frontend && npm install && npm run dev
-```
-
-The Vite dev server (http://localhost:5173) proxies `/api` to port 8000.
-
 ## Layout
 
 ```
@@ -85,6 +73,21 @@ backend/app/main.py         FastAPI routes, also serves the built frontend
 frontend/src/pages/         Import, FixImport (v2), Students, StudentReport
 scripts/seed.py             messy data generator + uploader
 ```
+
+<details>
+<summary><b>Run locally without Docker</b></summary>
+
+```bash
+cd backend && uv run uvicorn app.main:app --reload --port 8000
+```
+
+```bash
+cd frontend && npm install && npm run dev
+```
+
+The Vite dev server (http://localhost:5173) proxies `/api` to port 8000.
+
+</details>
 
 <details>
 <summary><b>Deployment notes (Vercel + Neon)</b></summary>
